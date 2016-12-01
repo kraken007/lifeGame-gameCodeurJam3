@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8" />
     <title>Life Game - Gamecodeur GameJam #3</title>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/phaser/2.6.2/phaser.min.js"></script>
+   <!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/phaser/2.6.2/phaser.min.js"></script> -->
+   <script type="text/javascript" src="./js/phaser.min.js"></script>
     <style type="text/css">
         body {
             margin: 0;
@@ -32,9 +33,11 @@
             , update: update
         });
         //variable "globale"
-        var fps = 3;
+        var fps = 30;
         var tailleGrille = 7;
         var nbCellule = tailleGrille * tailleGrille;
+        var start = false;
+        var cycle = true;
         //        var depart = [
         //                    [1, 1, 0, 0]
         //                    , [1, 0, 0, 0]
@@ -42,10 +45,10 @@
         //                    , [0, 0, 1, 1]
         //                ]
         //        var depart = [
-        //            [0, 1, 0]
-        //            , [0, 1, 0]
-        //            , [0, 1, 0]
-        //        ]
+          //          [0, 1, 0]
+            //        , [0, 1, 0]
+              //      , [0, 1, 0]
+                //]
         //        var depart = [
         //            [0,0,0,0,1,1,0,0,0,0],
         //            [0,0,0,1,0,0,1,0,0,0],
@@ -58,24 +61,37 @@
         //            [0,0,0,1,0,0,1,0,0,0],
         //            [0,0,0,0,1,1,0,0,0,0],
         //        ]
-        //        var depart = [
-        //            [0,0,1,0,0,0,0],
-        //            [1,1,0,0,0,0,0],
-        //            [0,0,1,1,0,0,0],
-        //            [0,1,0,0,0,1,0],
-        //            [0,0,0,1,1,0,0],
-        //            [0,0,0,0,0,1,1],
-        //            [0,0,0,0,1,0,0],
-        //        ]
-        var depart = [
-            [0, 0, 1, 0, 0, 0, 0]
-            , [0, 1, 0, 1, 0, 0, 0]
-            , [1, 0, 0, 1, 0, 0, 0]
-            , [0, 1, 1, 0, 1, 1, 0]
-            , [0, 0, 0, 1, 0, 0, 1]
-            , [0, 0, 0, 0, 1, 0, 1]
-            , [0, 0, 0, 0, 0, 1, 0]
-        , ]
+                var depart = [
+                    [0,0,1,0,0,0,0],
+                    [1,1,0,0,0,0,0],
+                    [0,0,1,1,0,0,0],
+                    [0,1,0,0,0,1,0],
+                    [0,0,0,1,1,0,0],
+                    [0,0,0,0,0,1,1],
+                    [0,0,0,0,1,0,0],
+                ]
+        //var depart = [
+          //    [0, 0, 1, 0, 0, 0, 0]
+          //  , [0, 1, 0, 1, 0, 0, 0]
+          //  , [1, 0, 0, 1, 0, 0, 0]
+          //  , [0, 1, 1, 0, 1, 1, 0]
+          //  , [0, 0, 0, 1, 0, 0, 1]
+          //  , [0, 0, 0, 1, 0, 1, 0]
+          //  , [0, 0, 0, 0, 1, 0, 0]
+        //, ]
+        //var depart = [
+          //  [1,1,0,0,0],
+          //  [1,0,1,0,0],
+          //  [0,0,0,0,0],
+          //  [0,0,1,0,1],
+          //  [0,0,0,1,1],
+        //]
+        //var depart = [
+        //    [1,1,1],
+        //    [0,0,1],
+        //    [0,1,0]
+        //]
+        
         var grille;
         //importe dans le jeu les assets (appeller qu'une seule fois)
         function preload() {
@@ -111,58 +127,69 @@
                     grille[i][j] = cellule;
                 }
             }
+            game.input.mouse.capture = true;
         }
         //boucle qui met a jour l'ecran de jeu x fois par seconde 
         function update() {
-            var celluleModifier = new Array();
-            var nbCelluleDead = 0;
-            for (var y = 0; y < tailleGrille; y++) {
-                for (var x = 0; x < tailleGrille; x++) {
-                    var cellule = grille[x][y];
-                    var compteur = 0;
-                    isAlive(x - 1, y - 1) ? compteur++ : null;
-                    isAlive(x, y - 1) ? compteur++ : null;
-                    isAlive(x + 1, y - 1) ? compteur++ : null;
-                    isAlive(x - 1, y) ? compteur++ : null;
-                    isAlive(x + 1, y) ? compteur++ : null;
-                    isAlive(x - 1, y + 1) ? compteur++ : null;
-                    isAlive(x, y + 1) ? compteur++ : null;
-                    isAlive(x + 1, y + 1) ? compteur++ : null;
-                    if (compteur === 3) {
-                        cellule.nextTurn = 'life';
-                        celluleModifier.push(cellule);
+            if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) 
+                || game.input.activePointer.leftButton.isDown
+            ){
+                start = true;
+            }
+            if(start === true && cycle === true){
+                cycle = false;
+                var celluleModifier = new Array();
+                var nbCelluleDead = 0;
+                for (var y = 0; y < tailleGrille; y++) {
+                    for (var x = 0; x < tailleGrille; x++) {
+                        var cellule = grille[x][y];
+                        var compteur = 0;
+                        isAlive(x - 1, y - 1) ? compteur++ : null;
+                        isAlive(x, y - 1) ? compteur++ : null;
+                        isAlive(x + 1, y - 1) ? compteur++ : null;
+                        isAlive(x - 1, y) ? compteur++ : null;
+                        isAlive(x + 1, y) ? compteur++ : null;
+                        isAlive(x - 1, y + 1) ? compteur++ : null;
+                        isAlive(x, y + 1) ? compteur++ : null;
+                        isAlive(x + 1, y + 1) ? compteur++ : null;
+                        if (compteur === 3) {
+                            cellule.nextTurn = 'life';
+                            celluleModifier.push(cellule);
+                        }
+                        else if (compteur < 2 || compteur > 3) {
+                            cellule.nextTurn = 'dead';
+                            celluleModifier.push(cellule);
+                            nbCelluleDead++;
+                        }
+                        else {
+                            cellule.nextTurn = null;
+                        }
                     }
-                    else if (compteur < 2 || compteur > 3) {
-                        cellule.nextTurn = 'dead';
-                        celluleModifier.push(cellule);
-                        nbCelluleDead++;
+                }
+                for (var m = 0; m < celluleModifier.length; m++) {
+                    var tmp = celluleModifier[m];
+                    if (tmp.nextTurn === 'life') {
+                        tmp.isAlive = true;
+                        tmp.visible = true;
+                        tmp.nextTurn = null;
+                    }
+                    else if (tmp.nextTurn === 'dead') {
+                        tmp.isAlive = false;
+                        tmp.visible = false;
+                        tmp.nextTurn = null;
                     }
                     else {
-                        cellule.nextTurn = null;
+                        tmp.nextTurn = null;
                     }
                 }
-            }
-            for (var m = 0; m < celluleModifier.length; m++) {
-                var tmp = celluleModifier[m];
-                if (tmp.nextTurn === 'life') {
-                    tmp.isAlive = true;
-                    tmp.visible = true;
-                    tmp.nextTurn = null;
+                if (nbCelluleDead === nbCellule) {
+                    alert('fini');
+                    game.destroy();
                 }
-                else if (tmp.nextTurn === 'dead') {
-                    tmp.isAlive = false;
-                    tmp.visible = false;
-                    tmp.nextTurn = null;
-                }
-                else {
-                    tmp.nextTurn = null;
-                }
+                console.log('loop');
+                cycle = true;    
             }
-            if (nbCelluleDead === nbCellule) {
-                alert('fini');
-                game.destroy();
-            }
-            console.log('loop');
+            
         }
         //test si la cellule est vivante
         function isAlive(px, py) {
