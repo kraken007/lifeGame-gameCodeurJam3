@@ -1,8 +1,7 @@
-if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
-                console.log('SPACEBAR');
-            }
 
 game state 
 http://phaser.io/examples/v2/p2-physics/state-reset
 http://phaser.io/docs/2.6.2/Phaser.State.html
 https://developer.mozilla.org/fr/docs/Games/Workflows/HTML5_Gamedev_Phaser_Device_Orientation_FR
+
+http://www.html5gamedevs.com/topic/25655-game-states/

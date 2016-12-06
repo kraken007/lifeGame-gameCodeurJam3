@@ -4,154 +4,161 @@
 <head>
     <meta charset="UTF-8" />
     <title>Life Game - Gamecodeur GameJam #3</title>
-   <!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/phaser/2.6.2/phaser.min.js"></script> -->
-   <script type="text/javascript" src="./js/phaser.min.js"></script>
+    <script type="text/javascript" src="./js/phaser.min.js"></script>
     <style type="text/css">
-        body {
-            margin: 0;
-            text-align: center;
-            background-color: linen;
-        }
-        
-        #game {
-            width: 800px;
-            height: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            margin-top: 50px;
-        }
+    body {
+        margin: 0;
+        text-align: center;
+        background-color: linen;
+    }
+
+    #game {
+        width: 800px;
+        height: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 50px;
+    }
     </style>
 </head>
 
 <body>
     <div id='game'></div>
     <script type="text/javascript">
+
         //crée la fenetre de jeu
-        var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'game', {
-            preload: preload
-            , create: create
-            , update: update
-        });
+        var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'game');
+
         //variable "globale"
-        var fps = 30;
-        var tailleGrille = 7;
-        var nbCellule = tailleGrille * tailleGrille;
-        var start = false;
-        var cycle = true;
-        //        var depart = [
-        //                    [1, 1, 0, 0]
-        //                    , [1, 0, 0, 0]
-        //                    , [0, 0, 0, 1]
-        //                    , [0, 0, 1, 1]
-        //                ]
-        //        var depart = [
-          //          [0, 1, 0]
-            //        , [0, 1, 0]
-              //      , [0, 1, 0]
-                //]
-        //        var depart = [
-        //            [0,0,0,0,1,1,0,0,0,0],
-        //            [0,0,0,1,0,0,1,0,0,0],
-        //            [0,0,0,1,0,1,0,0,0,0],
-        //            [0,1,1,0,1,0,0,0,1,0],
-        //            [1,0,0,1,0,0,0,1,0,1],
-        //            [1,0,1,0,0,0,1,0,0,1],
-        //            [0,1,0,0,0,1,0,1,1,0],
-        //            [0,0,0,0,1,0,1,0,0,0],
-        //            [0,0,0,1,0,0,1,0,0,0],
-        //            [0,0,0,0,1,1,0,0,0,0],
-        //        ]
+        var Play = {
+
+            //importe dans le jeu les assets (appeller qu'une seule fois)
+            preload: function () {
+                game.load.image('cellule', './img/cellule.jpg');
+
+
+                var fps = 30;
+                var tailleGrille = 7;
+                var nbCellule = tailleGrille * tailleGrille;
+                var start = false;
+                var cycle = true;
+                //        var depart = [
+                //                    [1, 1, 0, 0]
+                //                    , [1, 0, 0, 0]
+                //                    , [0, 0, 0, 1]
+                //                    , [0, 0, 1, 1]
+                //                ]
+                //        var depart = [
+                  //          [0, 1, 0]
+                    //        , [0, 1, 0]
+                      //      , [0, 1, 0]
+                        //]
+                //        var depart = [
+                //            [0,0,0,0,1,1,0,0,0,0],
+                //            [0,0,0,1,0,0,1,0,0,0],
+                //            [0,0,0,1,0,1,0,0,0,0],
+                //            [0,1,1,0,1,0,0,0,1,0],
+                //            [1,0,0,1,0,0,0,1,0,1],
+                //            [1,0,1,0,0,0,1,0,0,1],
+                //            [0,1,0,0,0,1,0,1,1,0],
+                //            [0,0,0,0,1,0,1,0,0,0],
+                //            [0,0,0,1,0,0,1,0,0,0],
+                //            [0,0,0,0,1,1,0,0,0,0],
+                //        ]
                 var depart = [
-                    [0,0,1,0,0,0,0],
-                    [1,1,0,0,0,0,0],
-                    [0,0,1,1,0,0,0],
-                    [0,1,0,0,0,1,0],
-                    [0,0,0,1,1,0,0],
-                    [0,0,0,0,0,1,1],
-                    [0,0,0,0,1,0,0],
+                [0,0,1,0,0,0,0],
+                [1,1,0,0,0,0,0],
+                [0,0,1,1,0,0,0],
+                [0,1,0,0,0,1,0],
+                [0,0,0,1,1,0,0],
+                [0,0,0,0,0,1,1],
+                [0,0,0,0,1,0,0],
                 ]
-        //var depart = [
-          //    [0, 0, 1, 0, 0, 0, 0]
-          //  , [0, 1, 0, 1, 0, 0, 0]
-          //  , [1, 0, 0, 1, 0, 0, 0]
-          //  , [0, 1, 1, 0, 1, 1, 0]
-          //  , [0, 0, 0, 1, 0, 0, 1]
-          //  , [0, 0, 0, 1, 0, 1, 0]
-          //  , [0, 0, 0, 0, 1, 0, 0]
-        //, ]
-        //var depart = [
-          //  [1,1,0,0,0],
-          //  [1,0,1,0,0],
-          //  [0,0,0,0,0],
-          //  [0,0,1,0,1],
-          //  [0,0,0,1,1],
-        //]
-        //var depart = [
-        //    [1,1,1],
-        //    [0,0,1],
-        //    [0,1,0]
-        //]
-        
-        var grille;
-        //importe dans le jeu les assets (appeller qu'une seule fois)
-        function preload() {
-            game.load.image('cellule', './img/cellule.jpg');
-        }
-        //create qui initialise le jeu (appeller qu'une seule fois)
-        function create() {
-            //fixe les fps du jeu
-            game.time.desiredFps = fps;
-            //active la physique type arcade
-            game.physics.startSystem(Phaser.Physics.ARCADE);
-            //grille de jeu
-            grille = new Array(tailleGrille);
-            for (var g = 0; g < tailleGrille; g++) {
-                grille[g] = new Array(tailleGrille);
-            }
-            //définition de la position de l'aire de jeu (grille)
-            var tailleCellule = game.cache.getImage('cellule').width;
-            var tailleAireDeJeu = tailleCellule * tailleGrille;
-            var pointDepartGrilleX = (game.world.width - tailleAireDeJeu) / 2;
-            var pointDepartGrilleY = (game.world.height - tailleAireDeJeu) / 2;
-            for (var i = 0; i < tailleGrille; i++) {
-                for (var j = 0; j < tailleGrille; j++) {
-                    var cellule = game.add.sprite(pointDepartGrilleX + (tailleCellule * j), pointDepartGrilleY + (tailleCellule * i), 'cellule');
-                    cellule.setScaleMinMax(0.95, 0.95);
-                    cellule.isAlive = false;
-                    cellule.visible = false;
-                    cellule.nextTurn = null;
-                    if (depart[i][j] === 1) {
-                        cellule.isAlive = true;
-                        cellule.visible = true;
-                    }
-                    grille[i][j] = cellule;
+                //var depart = [
+                  //    [0, 0, 1, 0, 0, 0, 0]
+                  //  , [0, 1, 0, 1, 0, 0, 0]
+                  //  , [1, 0, 0, 1, 0, 0, 0]
+                  //  , [0, 1, 1, 0, 1, 1, 0]
+                  //  , [0, 0, 0, 1, 0, 0, 1]
+                  //  , [0, 0, 0, 1, 0, 1, 0]
+                  //  , [0, 0, 0, 0, 1, 0, 0]
+                //, ]
+                //var depart = [
+                  //  [1,1,0,0,0],
+                  //  [1,0,1,0,0],
+                  //  [0,0,0,0,0],
+                  //  [0,0,1,0,1],
+                  //  [0,0,0,1,1],
+                //]
+                //var depart = [
+                //    [1,1,1],
+                //    [0,0,1],
+                //    [0,1,0]
+                //]
+                
+                var grille;
+
+
+
+            },
+            //create qui initialise le jeu (appeller qu'une seule fois)
+            create:function () {
+
+
+
+                //fixe les fps du jeu
+                game.time.desiredFps = this.fps;
+                //active la physique type arcade
+                game.physics.startSystem(Phaser.Physics.ARCADE);
+                //grille de jeu
+                this.grille = new Array(this.tailleGrille);
+                for (var g = 0; g < this.tailleGrille; g++) {
+                    this.grille[g] = new Array(this.tailleGrille);
                 }
+                //définition de la position de l'aire de jeu (grille)
+                var tailleCellule = game.cache.getImage('cellule').width;
+                var tailleAireDeJeu = tailleCellule * this.tailleGrille;
+                var pointDepartGrilleX = (game.world.width - tailleAireDeJeu) / 2;
+                var pointDepartGrilleY = (game.world.height - tailleAireDeJeu) / 2;
+                for (var i = 0; i < this.tailleGrille; i++) {
+                    for (var j = 0; j < this.tailleGrille; j++) {
+                        var cellule = game.add.sprite(pointDepartGrilleX + (tailleCellule * j), pointDepartGrilleY + (tailleCellule * i), 'cellule');
+                        cellule.setScaleMinMax(0.95, 0.95);
+                        cellule.isAlive = false;
+                        cellule.visible = false;
+                        cellule.nextTurn = null;
+                        if (this.depart[i][j] === 1) {
+                            cellule.isAlive = true;
+                            cellule.visible = true;
+                        }
+                        this.grille[i][j] = cellule;
+                    }
+                }
+                game.input.mouse.capture = true;
+            },
+            //boucle qui met a jour l'ecran de jeu x fois par seconde 
+            update: function () {
+                if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) 
+                    || game.input.activePointer.leftButton.isDown
+                    ){
+                    this.start = true;
             }
-            game.input.mouse.capture = true;
-        }
-        //boucle qui met a jour l'ecran de jeu x fois par seconde 
-        function update() {
-            if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) 
-                || game.input.activePointer.leftButton.isDown
-            ){
-                start = true;
-            }
-            if(start === true && cycle === true){
-                cycle = false;
+            if(this.start === true && this.cycle === true){
+                this.cycle = false;
                 var celluleModifier = new Array();
                 var nbCelluleDead = 0;
-                for (var y = 0; y < tailleGrille; y++) {
-                    for (var x = 0; x < tailleGrille; x++) {
-                        var cellule = grille[x][y];
+                for (var y = 0; y < this.tailleGrille; y++) {
+                    for (var x = 0; x < this.tailleGrille; x++) {
+                        var cellule = this.grille[x][y];
                         var compteur = 0;
-                        isAlive(x - 1, y - 1) ? compteur++ : null;
-                        isAlive(x, y - 1) ? compteur++ : null;
-                        isAlive(x + 1, y - 1) ? compteur++ : null;
-                        isAlive(x - 1, y) ? compteur++ : null;
-                        isAlive(x + 1, y) ? compteur++ : null;
-                        isAlive(x - 1, y + 1) ? compteur++ : null;
-                        isAlive(x, y + 1) ? compteur++ : null;
-                        isAlive(x + 1, y + 1) ? compteur++ : null;
+                        this.isAlive(x - 1, y - 1) ? compteur++ : null;
+                        this.isAlive(x, y - 1) ? compteur++ : null;
+                        this.isAlive(x + 1, y - 1) ? compteur++ : null;
+                        this.isAlive(x - 1, y) ? compteur++ : null;
+                        this.isAlive(x + 1, y) ? compteur++ : null;
+                        this.isAlive(x - 1, y + 1) ? compteur++ : null;
+                        this.isAlive(x, y + 1) ? compteur++ : null;
+                        this.isAlive(x + 1, y + 1) ? compteur++ : null;
                         if (compteur === 3) {
                             cellule.nextTurn = 'life';
                             celluleModifier.push(cellule);
@@ -182,26 +189,34 @@
                         tmp.nextTurn = null;
                     }
                 }
-                if (nbCelluleDead === nbCellule) {
+                if (nbCelluleDead === this.nbCellule) {
                     alert('fini');
                     game.destroy();
                 }
                 console.log('loop');
-                cycle = true;    
+                this.cycle = true;    
             }
-            
-        }
-        //test si la cellule est vivante
-        function isAlive(px, py) {
-            try {
-                var tmp = grille[px][py].isAlive;
-            }
-            catch (e) {
-                return false;
-            }
-            return tmp;
-        }
-    </script>
-</body>
 
-</html>
+        },
+            //test si la cellule est vivante
+            isAlive: function (px, py) {
+                try {
+                    var tmp = this.grille[px][py].isAlive;
+                }
+                catch (e) {
+                    return false;
+                }
+                return tmp;
+            }
+        };
+
+        //add gamestate
+        game.state.add('Play', Play);
+
+        //premiere scene
+        game.state.start('Play');
+        
+        </script>
+    </body>
+
+    </html>
