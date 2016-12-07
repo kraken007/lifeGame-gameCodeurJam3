@@ -27,6 +27,27 @@
     <script type="text/javascript">
         //crée la fenetre de jeu
         var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'game');
+        
+        var intro = {
+            preload: function(){
+                game.load.image('cellule', './img/cellule.jpg');
+                this.tabText = Array('content1','content2');
+                this.text;
+                this.conteurText = 0;
+            },
+            create: function(){
+                this.text = game.add.text(game.world.centerX, game.world.centerY, this.tabText[this.conteurText], { font: "65px Arial", fill: "#ff0044", align: "center" });
+                this.text.anchor.setTo(0.5, 0.5);
+                game.input.onDown.addOnce(this.nextText, this);
+            },
+            update: function(){
+
+            },
+            nextText: function(){
+                this.conteurText += 1;
+                this.text.setText(this.tabText[this.conteurText]);
+            }
+        };
         var Play = {
             preload: function () {
                 game.load.image('cellule', './img/cellule.jpg');
@@ -202,8 +223,9 @@
         //                ]
         //add gamestate
         game.state.add('play', Play);
+        game.state.add('intro', intro);
         //premiere scene
-        game.state.start('play');
+        game.state.start('intro');
     </script>
 </body>
 
