@@ -27,25 +27,72 @@
     <script type="text/javascript">
         //crée la fenetre de jeu
         var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'game');
-        
         var intro = {
-            preload: function(){
+            preload: function () {
                 game.load.image('cellule', './img/cellule.jpg');
-                this.tabText = Array('content1','content2');
+                this.tabText = Array(
+                    "Le jeu de la vie c'est quoi ? \n C'est un automate cellulaire imaginé \n par John Horton Conway en 1970.",
+                    "Le jeu se déroule sur une grille à deux dimensions,\n dont les cases qu’on appelle des « cellules », \n peuvent prendre deux états distincts : \n « vivantes » ou « mortes » ",
+                    "À chaque étape,\n l’évolution d’une cellule est entièrement \n déterminée par l’état de ses huit \n voisines de la façon suivante :",
+                    "1) Une cellule morte possédant exactement trois\n voisines vivantes devient vivante \n 2) Si une cellule a strictement moins de deux \n ou strictement plus de trois voisines vivantes,\n elle est morte."
+                );
                 this.text;
                 this.conteurText = 0;
-            },
-            create: function(){
-                this.text = game.add.text(game.world.centerX, game.world.centerY, this.tabText[this.conteurText], { font: "65px Arial", fill: "#ff0044", align: "center" });
+                this.buttonNext;
+                this.buttonPrevious;
+                this.buttonStart;
+            }
+            , create: function () {
+                this.text = game.add.text(game.world.centerX, game.world.centerY, this.tabText[this.conteurText], {
+                    font: "32px Arial"
+                    , fill: "#ff0044"
+                    , align: "center"
+                });
+                var espace = game.world.width / 3;
+                var tailleCellule = game.cache.getImage('cellule').width;
+                var positionX = (espace - tailleCellule) / 2;
+                var positionY = game.world.height - 100;
+                
                 this.text.anchor.setTo(0.5, 0.5);
-                game.input.onDown.addOnce(this.nextText, this);
-            },
-            update: function(){
-
-            },
-            nextText: function(){
+                
+                this.buttonNext = game.add.button(positionX + espace, positionY, 'cellule', this.nextText, this);
+                this.buttonNext.scale.setTo(2, 1);
+                var textButtonNext = game.add.text(0, 5, "Next", {font: "16px Arial", fill: "#2E8B57", align: "center"});
+                this.buttonNext.addChild(textButtonNext);
+                this.buttonNext.visible = true;
+                this.buttonPrevious = game.add.button(positionX, positionY, 'cellule', this.previousText, this);
+                this.buttonPrevious.scale.setTo(2, 1);
+                var textButtonPrevious = game.add.text(0, 5, "Previous", {font: "16px Arial", fill: "#ff0044", align: "center"});
+                this.buttonPrevious.addChild(textButtonPrevious);
+                this.buttonPrevious.visible = false;
+                this.buttonStart = game.add.button(positionX + (espace * 2), positionY, 'cellule', this.startGame, this);
+                this.buttonStart.scale.setTo(2, 1);
+                var textButtonStart = game.add.text(0, 5, "Start", {font: "16px Arial", fill: "#000000", align: "center"});
+                this.buttonStart.addChild(textButtonStart);
+            }
+            , update: function () {
+                if(this.conteurText > 0 && this.buttonPrevious.visible === false ){
+                    this.buttonPrevious.visible = true;
+                }
+                if(this.conteurText == 0 && this.buttonPrevious.visible === true ){
+                    this.buttonPrevious.visible = false;
+                }
+                if(this.conteurText == (this.tabText.length - 1) && this.buttonNext.visible === true){
+                    this.buttonNext.visible = false;
+                }
+                if(this.conteurText < (this.tabText.length - 1) && this.buttonNext.visible === false){
+                    this.buttonNext.visible = true;
+                }
+            }
+            , nextText: function () {
                 this.conteurText += 1;
                 this.text.setText(this.tabText[this.conteurText]);
+            }
+            , previousText: function () {
+                this.conteurText -= 1;
+                this.text.setText(this.tabText[this.conteurText]);
+            },startGame: function(){
+                this.state.start('play');
             }
         };
         var Play = {
