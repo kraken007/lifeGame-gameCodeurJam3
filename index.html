@@ -60,11 +60,13 @@
                 var textButtonNext = game.add.text(0, 5, "Next", {font: "16px Arial", fill: "#2E8B57", align: "center"});
                 this.buttonNext.addChild(textButtonNext);
                 this.buttonNext.visible = true;
+
                 this.buttonPrevious = game.add.button(positionX, positionY, 'cellule', this.previousText, this);
                 this.buttonPrevious.scale.setTo(2, 1);
                 var textButtonPrevious = game.add.text(0, 5, "Previous", {font: "16px Arial", fill: "#ff0044", align: "center"});
                 this.buttonPrevious.addChild(textButtonPrevious);
                 this.buttonPrevious.visible = false;
+
                 this.buttonStart = game.add.button(positionX + (espace * 2), positionY, 'cellule', this.startGame, this);
                 this.buttonStart.scale.setTo(2, 1);
                 var textButtonStart = game.add.text(0, 5, "Start", {font: "16px Arial", fill: "#000000", align: "center"});
@@ -113,7 +115,9 @@
                 , [0, 0, 0, 1, 1, 0, 0]
                 , [0, 0, 0, 0, 0, 1, 1]
                 , [0, 0, 0, 0, 1, 0, 0]
-                 ]
+                 ];
+
+                
             }
             , create: function () {
                 //fixe les fps du jeu
@@ -144,13 +148,18 @@
                         this.grille[i][j] = cellule;
                     }
                 }
-                game.input.mouse.capture = true;
+
+                buttonDepart = game.add.button(game.world.width / 2 , game.world.height - 50, 'cellule', this.departAlgo, this);
+                var textButtonDepart = game.add.text(0, 5, "Depart", {font: "16px Arial", fill: "#ff0044", align: "center"});
+                buttonDepart.addChild(textButtonDepart);
             }
             , update: function () {
                 console.log('update');
-                if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || game.input.activePointer.leftButton.isDown) {
-                    this.start = true;
+                if(this.start === true && buttonDepart.visible === true){
+
+                    buttonDepart.visible = false;
                 }
+                
                 if (this.start === true && this.cycle === true) {
                     this.cycle = false;
                     var celluleModifier = new Array();
@@ -213,6 +222,8 @@
                     return false;
                 }
                 return tmp;
+            }, departAlgo: function(){
+                this.start = true;
             }
         };
         //            //        var depart = [
