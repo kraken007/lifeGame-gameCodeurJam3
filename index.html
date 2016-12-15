@@ -28,10 +28,67 @@
     //crée la fenetre de jeu
     var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'game');
 
+    //state menu
+    var menu = {
+
+        preload: function () {
+            game.load.image('cellule', './img/cellule.jpg');
+            game.load.image('back', './img/back.png');
+            game.load.image('editor', './img/editor.png');
+            game.load.image('next', './img/next.png');
+            game.load.image('playrand', './img/playrand.png');
+            game.load.image('previous', './img/previous.png');
+            game.load.image('rules', './img/rules.png');
+            game.load.image('start', './img/start.png');
+            game.load.image('reset', './img/reset.png');
+        },
+        create: function () {
+            var centreY = game.world.height / 2;
+            var centreX = game.world.width / 2;
+            var espace = 30;
+
+            var playRandButton = game.add.button(centreX - (game.cache.getImage('playrand').width / 2), centreY - (game.cache.getImage('playrand').height / 2) - game.cache.getImage('editor').height - espace, 'playrand', this.playRand, this);
+            var editorButton = game.add.button(centreX - (game.cache.getImage('editor').width / 2), centreY - (game.cache.getImage('editor').height / 2), 'editor', this.editor, this);
+            var rulesButton = game.add.button(centreX - (game.cache.getImage('rules').width / 2), centreY - (game.cache.getImage('rules').height / 2) + game.cache.getImage('editor').height + espace, 'rules', this.rules, this);
+        },
+        update: function () {
+
+        }
+        , playRand: function () {
+            var param = [
+                [0, 0, 0, 0, 1, 1, 0, 0, 0, 0]
+                , [0, 0, 0, 1, 0, 0, 1, 0, 0, 0]
+                , [0, 0, 0, 1, 0, 1, 0, 0, 0, 0]
+                , [0, 1, 1, 0, 1, 0, 0, 0, 1, 0]
+                , [1, 0, 0, 1, 0, 0, 0, 1, 0, 1]
+                , [1, 0, 1, 0, 0, 0, 1, 0, 0, 1]
+                , [0, 1, 0, 0, 0, 1, 0, 1, 1, 0]
+                , [0, 0, 0, 0, 1, 0, 1, 0, 0, 0]
+                , [0, 0, 0, 1, 0, 0, 1, 0, 0, 0]
+                , [0, 0, 0, 0, 1, 1, 0, 0, 0, 0]
+            ];
+            game.state.start('editor', true, false, param);
+        }
+        , editor: function () {
+            game.state.start('editor', true, false, null);
+        }
+        , rules: function () {
+            game.state.start('intro');
+        }
+    };
+
     //state intro
     var intro = {
         preload: function () {
             game.load.image('cellule', './img/cellule.jpg');
+            game.load.image('back', './img/back.png');
+            game.load.image('editor', './img/editor.png');
+            game.load.image('next', './img/next.png');
+            game.load.image('playrand', './img/playrand.png');
+            game.load.image('previous', './img/previous.png');
+            game.load.image('rules', './img/rules.png');
+            game.load.image('start', './img/start.png');
+            game.load.image('reset', './img/reset.png');
             this.tabText = [
                 "Le jeu de la vie c'est quoi ? \n C'est un automate cellulaire imaginé \n par John Horton Conway en 1970.",
                 "Le jeu se déroule sur une grille à deux dimensions,\n dont les cases qu’on appelle des « cellules », \n peuvent prendre deux états distincts : \n « vivantes » ou « mortes » ",
@@ -57,26 +114,13 @@
 
             this.text.anchor.setTo(0.5, 0.5);
 
-            this.buttonNext = game.add.button(positionX + espace, positionY, 'cellule', this.nextText, this);
-            this.buttonNext.scale.setTo(2, 1);
-            var textButtonNext = game.add.text(0, 5, "Next", {font: "16px Arial", fill: "#2E8B57", align: "center"});
-            this.buttonNext.addChild(textButtonNext);
+            this.buttonNext = game.add.button(positionX + espace, positionY, 'next', this.nextText, this);
             this.buttonNext.visible = true;
 
-            this.buttonPrevious = game.add.button(positionX, positionY, 'cellule', this.previousText, this);
-            this.buttonPrevious.scale.setTo(2, 1);
-            var textButtonPrevious = game.add.text(0, 5, "Previous", {
-                font: "16px Arial",
-                fill: "#ff0044",
-                align: "center"
-            });
-            this.buttonPrevious.addChild(textButtonPrevious);
+            this.buttonPrevious = game.add.button(positionX, positionY, 'previous', this.previousText, this);
             this.buttonPrevious.visible = false;
 
-            this.buttonStart = game.add.button(positionX + (espace * 2), positionY, 'cellule', this.startGame, this);
-            this.buttonStart.scale.setTo(2, 1);
-            var textButtonStart = game.add.text(0, 5, "Editor", {font: "16px Arial", fill: "#000000", align: "center"});
-            this.buttonStart.addChild(textButtonStart);
+            this.buttonStart = game.add.button(positionX + (espace * 2), positionY, 'start', this.startGame, this);
         }
         , update: function () {
             if (this.conteurText > 0 && this.buttonPrevious.visible === false) {
@@ -100,59 +144,60 @@
             this.conteurText -= 1;
             this.text.setText(this.tabText[this.conteurText]);
         }, startGame: function () {
-            this.state.start('editor');
+            this.state.start('editor', true, false, null);
         }
     };
 
     //state editor
     var editor = {
-        preload: function () {
+        init: function (param) {
+
+            if (typeof param === 'object' && param !== null) {
+                this.DEPART = param;
+            } else {
+                this.DEPART = [];
+            }
+        }
+        , preload: function () {
             game.load.image('cellule', './img/cellule.jpg');
+            game.load.image('start', './img/start.png');
             //grille
-            this.nbColonne = 10;
-            this.nbLigne = 10;
+            this.tailleCellule = game.cache.getImage('cellule').width;
+            this.nbColonne = (this.DEPART.length > 0) ? this.DEPART[0].length : 3;
+            this.nbLigne = (this.DEPART.length > 0) ? this.DEPART.length : 3;
             this.tailleGrille = this.nbColonne * this.nbLigne;
             this.tabLine = [];
             this.grille = new Array(this.nbLigne);
             this.latenceClick = 300;
             this.nextClick = 0;
+            this.startX = (game.world.width - (this.nbColonne * this.tailleCellule)) / 2;
+            this.startY = (game.world.height - (this.nbLigne * this.tailleCellule)) / 2;
             //cycle jeu
             this.start = false;
             this.cycle = true;
             this.fps = 3;
         },
         create: function () {
-            var tailleCellule = game.cache.getImage('cellule').width;
-            this.startX = (game.world.width - (this.nbColonne * tailleCellule)) / 2;
-            this.startY = (game.world.height - (this.nbLigne * tailleCellule)) / 2;
 
-            //traçage des lignes
-            for (var i = 0; i <= this.nbColonne; i++) {
-                this.tabLine.push(new Phaser.Line((this.startX + (tailleCellule * i)), this.startY, (this.startX + (tailleCellule * i)), (this.startY + (tailleCellule * this.nbLigne))));
-            }
-            for (var j = 0; j <= this.nbLigne; j++) {
-                this.tabLine.push(new Phaser.Line(this.startX, (this.startY + (tailleCellule * j)), (this.startX + (tailleCellule * this.nbColonne)), (this.startY + (tailleCellule * j))));
-                this.grille[j] = new Array(this.nbColonne);
-            }
-            //ajout des sprites dans les cases
-            for (var l = 0; l < this.nbLigne; l++) {
-                for (var c = 0; c < this.nbColonne; c++) {
-                    var cellule = game.add.sprite(this.startX + (tailleCellule * l), this.startY + (tailleCellule * c), 'cellule');
-                    cellule.setScaleMinMax(0.90, 0.90);
-                    cellule.anchor.x = -0.07;
-                    cellule.anchor.y = -0.07;
-                    cellule.isAlive = false;
-                    cellule.visible = false;
-                    cellule.nextTurn = null;
-                    this.grille[l][c] = cellule;
+            this.initGrille();
+
+            if(this.DEPART.length === 0){
+                for (var d = 0; d < this.nbLigne; d++) {
+                    this.DEPART[d] = new Array(this.nbColonne);
                 }
             }
 
+            for (var l = 0; l < this.nbLigne; l++) {
+                for (var c = 0; c < this.nbColonne; c++) {
+                    var tmpCellule = this.grille[l][c];
+                    tmpCellule.isAlive = (this.DEPART[l][c] === 1);
+                    tmpCellule.visible = (this.DEPART[l][c] === 1);
+                }
+            }
+
+
             //ajout du bouton start
-            this.buttonStart = game.add.button(game.world.width / 2, game.world.height - 100, 'cellule', this.nextState, this);
-            this.buttonStart.scale.setTo(2, 1);
-            var textButtonStart = game.add.text(0, 5, "Start", {font: "16px Arial", fill: "#000000", align: "center"});
-            this.buttonStart.addChild(textButtonStart);
+            this.buttonStart = game.add.button(game.world.width / 2, game.world.height - 100, 'start', this.nextState, this);
         },
         update: function () {
 
@@ -172,9 +217,11 @@
                 if (cel.isAlive === true) {
                     cel.isAlive = false;
                     cel.visible = false;
+                    this.DEPART[caseX][caseY] = 0;
                 } else {
                     cel.isAlive = true;
                     cel.visible = true;
+                    this.DEPART[caseX][caseY] = 1;
                 }
             }
             //gestion du jeu
@@ -231,7 +278,7 @@
                 if (nbCelluleDead === this.tailleGrille) {
                     alert('Toutes les cellules sont mortes :(');
                     game.time.desiredFps = 30;
-                    game.state.start('editor');
+                    game.state.restart(false,true,this.DEPART);
                 }
                 this.cycle = true;
             }
@@ -240,6 +287,29 @@
         , render: function () {
             for (var i = 0; i < this.tabLine.length; i++) {
                 game.debug.geom(this.tabLine[i], 'LightSeaGreen');
+            }
+        }
+        , initGrille: function () {
+            //traçage des lignes
+            for (var i = 0; i <= this.nbColonne; i++) {
+                this.tabLine.push(new Phaser.Line((this.startX + ( this.tailleCellule * i)), this.startY, (this.startX + ( this.tailleCellule * i)), (this.startY + ( this.tailleCellule * this.nbLigne))));
+            }
+            for (var j = 0; j <= this.nbLigne; j++) {
+                this.tabLine.push(new Phaser.Line(this.startX, (this.startY + ( this.tailleCellule * j)), (this.startX + ( this.tailleCellule * this.nbColonne)), (this.startY + ( this.tailleCellule * j))));
+                this.grille[j] = new Array(this.nbColonne);
+            }
+            //ajout des sprites dans les cases
+            for (var l = 0; l < this.nbLigne; l++) {
+                for (var c = 0; c < this.nbColonne; c++) {
+                    var cellule = game.add.sprite(this.startX + ( this.tailleCellule * l), this.startY + ( this.tailleCellule * c), 'cellule');
+                    cellule.setScaleMinMax(0.90, 0.90);
+                    cellule.anchor.x = -0.07;
+                    cellule.anchor.y = -0.07;
+                    cellule.isAlive = false;
+                    cellule.visible = false;
+                    cellule.nextTurn = null;
+                    this.grille[l][c] = cellule;
+                }
             }
         }
         , nextState: function () {
@@ -255,11 +325,13 @@
             return enVie;
         }
     };
+
     //ajout des games states
+    game.state.add('menu', menu);
     game.state.add('intro', intro);
     game.state.add('editor', editor);
     //choix de la première scene
-    game.state.start('intro');
+    game.state.start('menu');
 </script>
 </body>
 
