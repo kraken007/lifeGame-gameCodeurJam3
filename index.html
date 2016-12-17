@@ -13,8 +13,8 @@
         }
 
         #game {
-            width: 800px;
-            height: 600px;
+            width: 1600px;
+            height: 1024px;
             margin-left: auto;
             margin-right: auto;
             margin-top: 50px;
@@ -26,7 +26,7 @@
 <div id='game'></div>
 <script type="text/javascript">
     //crée la fenetre de jeu
-    var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'game');
+    var game = new Phaser.Game(1600, 1024, Phaser.CANVAS, 'game');
 
     //state menu
     var menu = {
@@ -55,18 +55,7 @@
 
         }
         , playRand: function () {
-            var param = [
-                [0, 0, 0, 0, 1, 1, 0, 0, 0, 0]
-                , [0, 0, 0, 1, 0, 0, 1, 0, 0, 0]
-                , [0, 0, 0, 1, 0, 1, 0, 0, 0, 0]
-                , [0, 1, 1, 0, 1, 0, 0, 0, 1, 0]
-                , [1, 0, 0, 1, 0, 0, 0, 1, 0, 1]
-                , [1, 0, 1, 0, 0, 0, 1, 0, 0, 1]
-                , [0, 1, 0, 0, 0, 1, 0, 1, 1, 0]
-                , [0, 0, 0, 0, 1, 0, 1, 0, 0, 0]
-                , [0, 0, 0, 1, 0, 0, 1, 0, 0, 0]
-                , [0, 0, 0, 0, 1, 1, 0, 0, 0, 0]
-            ];
+            var param = utils.randomPatern();
             game.state.start('editor', true, false, param);
         }
         , editor: function () {
@@ -161,13 +150,15 @@
         , preload: function () {
             game.load.image('cellule', './img/cellule.jpg');
             game.load.image('start', './img/start.png');
+            console.log('preload');
+            console.log(this.DEPART);
             //grille
             this.tailleCellule = game.cache.getImage('cellule').width;
             this.nbColonne = (this.DEPART.length > 0) ? this.DEPART[0].length : 3;
             this.nbLigne = (this.DEPART.length > 0) ? this.DEPART.length : 3;
             this.tailleGrille = this.nbColonne * this.nbLigne;
             this.tabLine = [];
-            this.grille = new Array(this.nbLigne);
+            this.grille = [];
             this.latenceClick = 300;
             this.nextClick = 0;
             this.startX = (game.world.width - (this.nbColonne * this.tailleCellule)) / 2;
@@ -181,20 +172,21 @@
 
             this.initGrille();
 
-            if(this.DEPART.length === 0){
+            if (this.DEPART.length === 0) {
                 for (var d = 0; d < this.nbLigne; d++) {
                     this.DEPART[d] = new Array(this.nbColonne);
                 }
             }
-
             for (var l = 0; l < this.nbLigne; l++) {
                 for (var c = 0; c < this.nbColonne; c++) {
                     var tmpCellule = this.grille[l][c];
-                    tmpCellule.isAlive = (this.DEPART[l][c] === 1);
-                    tmpCellule.visible = (this.DEPART[l][c] === 1);
+                    if(this.DEPART[l][c] === 1){
+                        tmpCellule.isAlive = true;
+                        tmpCellule.visible = true;
+                    }
+
                 }
             }
-
 
             //ajout du bouton start
             this.buttonStart = game.add.button(game.world.width / 2, game.world.height - 100, 'start', this.nextState, this);
@@ -213,15 +205,15 @@
                 && game.time.now > this.nextClick) {
 
                 this.nextClick = game.time.now + this.latenceClick;
-                var cel = this.grille[caseX][caseY];
+                var cel = this.grille[caseY][caseX];
                 if (cel.isAlive === true) {
                     cel.isAlive = false;
                     cel.visible = false;
-                    this.DEPART[caseX][caseY] = 0;
+                    this.DEPART[caseY][caseX] = 0;
                 } else {
                     cel.isAlive = true;
                     cel.visible = true;
-                    this.DEPART[caseX][caseY] = 1;
+                    this.DEPART[caseY][caseX] = 1;
                 }
             }
             //gestion du jeu
@@ -235,7 +227,7 @@
                 var nbCelluleDead = 0;
                 for (var y = 0; y < this.nbLigne; y++) {
                     for (var x = 0; x < this.nbColonne; x++) {
-                        var cellule = this.grille[x][y];
+                        var cellule = this.grille[y][x];
                         var compteur = 0;
                         this.isAlive(x - 1, y - 1) ? compteur++ : null;
                         this.isAlive(x, y - 1) ? compteur++ : null;
@@ -278,7 +270,7 @@
                 if (nbCelluleDead === this.tailleGrille) {
                     alert('Toutes les cellules sont mortes :(');
                     game.time.desiredFps = 30;
-                    game.state.restart(false,true,this.DEPART);
+                    game.state.restart(false, true, this.DEPART);
                 }
                 this.cycle = true;
             }
@@ -296,12 +288,13 @@
             }
             for (var j = 0; j <= this.nbLigne; j++) {
                 this.tabLine.push(new Phaser.Line(this.startX, (this.startY + ( this.tailleCellule * j)), (this.startX + ( this.tailleCellule * this.nbColonne)), (this.startY + ( this.tailleCellule * j))));
-                this.grille[j] = new Array(this.nbColonne);
             }
+
             //ajout des sprites dans les cases
             for (var l = 0; l < this.nbLigne; l++) {
+                this.grille.push(new Array(this.nbColonne));
                 for (var c = 0; c < this.nbColonne; c++) {
-                    var cellule = game.add.sprite(this.startX + ( this.tailleCellule * l), this.startY + ( this.tailleCellule * c), 'cellule');
+                    var cellule = game.add.sprite(this.startX + ( this.tailleCellule * c), this.startY + ( this.tailleCellule * l), 'cellule');
                     cellule.setScaleMinMax(0.90, 0.90);
                     cellule.anchor.x = -0.07;
                     cellule.anchor.y = -0.07;
@@ -323,6 +316,100 @@
                 return false;
             }
             return enVie;
+        }
+    };
+
+    var utils = {
+        patern: [
+            [
+                [1, 1, 0, 0]
+                , [1, 0, 0, 0]
+                , [0, 0, 0, 1]
+                , [0, 0, 1, 1]
+            ],
+            [
+                [0, 1, 0]
+                , [0, 1, 0]
+                , [0, 1, 0]
+            ],
+            [
+                [0, 0, 1, 0, 0, 0, 0]
+                , [1, 1, 0, 0, 0, 0, 0]
+                , [0, 0, 1, 1, 0, 0, 0]
+                , [0, 1, 0, 0, 0, 1, 0]
+                , [0, 0, 0, 1, 1, 0, 0]
+                , [0, 0, 0, 0, 0, 1, 1]
+                , [0, 0, 0, 0, 1, 0, 0]
+            ],
+            [
+                [0, 0, 1, 0, 0, 0, 0]
+                , [0, 1, 0, 1, 0, 0, 0]
+                , [1, 0, 0, 1, 0, 0, 0]
+                , [0, 1, 1, 0, 1, 1, 0]
+                , [0, 0, 0, 1, 0, 0, 1]
+                , [0, 0, 0, 1, 0, 1, 0]
+                , [0, 0, 0, 0, 1, 0, 0]
+            ],
+            [
+                [1, 1, 0, 0, 0],
+                [1, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0],
+                [0, 0, 1, 0, 1],
+                [0, 0, 0, 1, 1]
+            ],
+            [
+                [1, 1, 1],
+                [0, 0, 1],
+                [0, 1, 0]
+            ],
+            [
+                [0, 0, 0, 0, 1, 1, 0, 0, 0, 0]
+                , [0, 0, 0, 1, 0, 0, 1, 0, 0, 0]
+                , [0, 0, 0, 1, 0, 1, 0, 0, 0, 0]
+                , [0, 1, 1, 0, 1, 0, 0, 0, 1, 0]
+                , [1, 0, 0, 1, 0, 0, 0, 1, 0, 1]
+                , [1, 0, 1, 0, 0, 0, 1, 0, 0, 1]
+                , [0, 1, 0, 0, 0, 1, 0, 1, 1, 0]
+                , [0, 0, 0, 0, 1, 0, 1, 0, 0, 0]
+                , [0, 0, 0, 1, 0, 0, 1, 0, 0, 0]
+                , [0, 0, 0, 0, 1, 1, 0, 0, 0, 0]
+            ],
+            [
+                [0, 0, 1, 0, 0, 0, 0]
+                , [1, 1, 0, 0, 0, 0, 0]
+                , [0, 0, 1, 1, 0, 0, 0]
+                , [0, 1, 0, 0, 0, 1, 0]
+                , [0, 0, 0, 1, 1, 0, 0]
+                , [0, 0, 0, 0, 0, 1, 1]
+                , [0, 0, 0, 0, 1, 0, 0]
+            ],
+            [
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0],
+                [0,1,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,1,1,0,0,0,0,0,0,0,0,1,0,0,0,1,0,1,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+            ]
+        ]
+        , randomPatern: function () {
+            var min = Math.ceil(0);
+            var max = Math.floor(this.patern.length);
+            var index = Math.floor(Math.random() * (max - min)) + min;
+//            return this.patern[index];
+            return this.patern[8];
         }
     };
 
