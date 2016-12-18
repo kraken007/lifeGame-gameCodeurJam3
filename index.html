@@ -14,7 +14,7 @@
 
         #game {
             width: 1280px;
-            height: 960px;
+            height: 768px;
             margin-left: auto;
             margin-right: auto;
             margin-top: 50px;
@@ -26,7 +26,7 @@
 <div id='game'></div>
 <script type="text/javascript">
     //crée la fenetre de jeu
-    var game = new Phaser.Game(1280, 960, Phaser.CANVAS, 'game');
+    var game = new Phaser.Game(1280, 768, Phaser.CANVAS, 'game');
 
     //state menu
     var menu = {
@@ -55,7 +55,7 @@
 
         }
         , playRand: function () {
-            var param = utils.randomPatern();
+            var param = utils.randompattern();
             game.state.start('editor', true, false, param);
         }
         , editor: function () {
@@ -89,6 +89,7 @@
             this.buttonNext = null;
             this.buttonPrevious = null;
             this.buttonStart = null;
+            this.buttonBack = null;
         }
         , create: function () {
             this.text = game.add.text(game.world.centerX, game.world.centerY, this.tabText[this.conteurText], {
@@ -96,20 +97,21 @@
                 , fill: "#ff0044"
                 , align: "center"
             });
-            var espace = game.world.width / 3;
-            var tailleCellule = game.cache.getImage('cellule').width;
-            var positionX = (espace - tailleCellule) / 2;
+            var espace = game.world.width / 4;
+            var positionX = espace / 2;
             var positionY = game.world.height - 100;
 
             this.text.anchor.setTo(0.5, 0.5);
 
-            this.buttonNext = game.add.button(positionX + espace, positionY, 'next', this.nextText, this);
-            this.buttonNext.visible = true;
+            this.buttonBack = game.add.button(positionX - (game.cache.getImage('back').width / 2 ), positionY, 'back', this.backGame, this);
 
-            this.buttonPrevious = game.add.button(positionX, positionY, 'previous', this.previousText, this);
+            this.buttonPrevious = game.add.button(positionX + espace - (game.cache.getImage('previous').width / 2 ), positionY, 'previous', this.previousText, this);
             this.buttonPrevious.visible = false;
 
-            this.buttonStart = game.add.button(positionX + (espace * 2), positionY, 'start', this.startGame, this);
+            this.buttonNext = game.add.button(positionX + (espace * 2) - (game.cache.getImage('next').width / 2 ), positionY, 'next', this.nextText, this);
+            this.buttonNext.visible = true;
+
+            this.buttonStart = game.add.button(positionX + (espace * 3) - (game.cache.getImage('start').width / 2 ), positionY, 'start', this.startGame, this);
         }
         , update: function () {
             if (this.conteurText > 0 && this.buttonPrevious.visible === false) {
@@ -124,6 +126,9 @@
             if (this.conteurText < (this.tabText.length - 1) && this.buttonNext.visible === false) {
                 this.buttonNext.visible = true;
             }
+        },
+        backGame: function () {
+            this.state.start('menu', true, false, null);
         }
         , nextText: function () {
             this.conteurText += 1;
@@ -150,8 +155,10 @@
         , preload: function () {
             game.load.image('cellule', './img/cellule.jpg');
             game.load.image('start', './img/start.png');
+            game.load.image('back', './img/back.png');
+            game.load.image('reset', './img/reset.png');
+
             //grille
-            this.tailleCellule = game.cache.getImage('cellule').width;
             this.nbColonne = (this.DEPART.length > 0) ? this.DEPART[0].length : 10;
             this.nbLigne = (this.DEPART.length > 0) ? this.DEPART.length : 10;
             this.tailleGrille = this.nbColonne * this.nbLigne;
@@ -159,14 +166,17 @@
             this.grille = [];
             this.latenceClick = 300;
             this.nextClick = 0;
-            this.startX = (game.world.width - (this.nbColonne * this.tailleCellule)) / 2;
-            this.startY = (game.world.height - (this.nbLigne * this.tailleCellule)) / 2;
+
             //cycle jeu
+            this.nbGeneration = 0;
             this.start = false;
             this.cycle = true;
             this.fps = 3;
         },
         create: function () {
+            this.tailleCellule = game.cache.getImage('cellule').width;
+            this.startX = (game.world.width - (this.nbColonne * this.tailleCellule)) / 2;
+            this.startY = (game.world.height - (this.nbLigne * this.tailleCellule)) / 2;
 
             this.initGrille();
 
@@ -187,7 +197,22 @@
             }
 
             //ajout du bouton start
-            this.buttonStart = game.add.button(game.world.width / 2, game.world.height - 100, 'start', this.nextState, this);
+            var espace = game.world.width / 3;
+            var positionX = espace / 2;
+            var positionY = game.world.height - 80;
+            var buttonBack = game.add.button(positionX - (game.cache.getImage('back').width / 2 ), positionY, 'back', this.retourMenu, this);
+            this.buttonStart = game.add.button(positionX + espace - (game.cache.getImage('start').width / 2 ), positionY, 'start', this.nextState, this);
+            var buttonReset = game.add.button(positionX + (espace * 2) - (game.cache.getImage('reset').width / 2 ), positionY, 'reset', this.resetGame, this);
+
+            //affichage du texte pour le nb de génération
+            this.textGenerationString = 'Nombre d\'itération : ' ;
+            this.textGeneration = game.add.text(10, 10, this.textGenerationString + this.nbGeneration, {
+                font: "32px Arial"
+                , fill: "#ff0044"
+                , align: "center"
+            });
+
+
         },
         update: function () {
 
@@ -268,18 +293,17 @@
                 }
                 if (nbCelluleDead === this.tailleGrille) {
                     alert('Toutes les cellules sont mortes :(');
-                    game.time.desiredFps = 30;
-                    game.state.restart(false, true, this.DEPART);
+                    this.resetGame();
                 }
+                this.nbGeneration++;
                 this.cycle = true;
             }
-
+            this.textGeneration.setText(this.textGenerationString + this.nbGeneration);
         }
         , render: function () {
             for (var i = 0; i < this.tabLine.length; i++) {
                 game.debug.geom(this.tabLine[i], 'LightSeaGreen');
             }
-            game.debug.pointer(game.input.activePointer);
         }
         , initGrille: function () {
             //traçage des lignes
@@ -304,7 +328,14 @@
                     this.grille[l][c] = cellule;
                 }
             }
+        }, resetGame: function () {
+            game.time.desiredFps = 30;
+            game.state.start('editor', true, false, this.DEPART);
+        }, retourMenu: function () {
+            game.time.desiredFps = 30;
+            game.state.start('menu', true, false);
         }
+
         , nextState: function () {
             this.start = true;
         }
@@ -320,35 +351,26 @@
     };
 
     var utils = {
-        patern: [
+        pattern: [
             [
-                [1, 1, 0, 0]
-                , [1, 0, 0, 0]
-                , [0, 0, 0, 1]
-                , [0, 0, 1, 1]
+                [1, 1, 0, 0],
+                [1, 0, 0, 0],
+                [0, 0, 0, 1],
+                [0, 0, 1, 1]
             ],
             [
+                [0, 1, 0],
+                [0, 1, 0],
                 [0, 1, 0]
-                , [0, 1, 0]
-                , [0, 1, 0]
             ],
             [
-                [0, 0, 1, 0, 0, 0, 0]
-                , [1, 1, 0, 0, 0, 0, 0]
-                , [0, 0, 1, 1, 0, 0, 0]
-                , [0, 1, 0, 0, 0, 1, 0]
-                , [0, 0, 0, 1, 1, 0, 0]
-                , [0, 0, 0, 0, 0, 1, 1]
-                , [0, 0, 0, 0, 1, 0, 0]
-            ],
-            [
-                [0, 0, 1, 0, 0, 0, 0]
-                , [0, 1, 0, 1, 0, 0, 0]
-                , [1, 0, 0, 1, 0, 0, 0]
-                , [0, 1, 1, 0, 1, 1, 0]
-                , [0, 0, 0, 1, 0, 0, 1]
-                , [0, 0, 0, 1, 0, 1, 0]
-                , [0, 0, 0, 0, 1, 0, 0]
+                [0, 0, 1, 0, 0, 0, 0],
+                [1, 1, 0, 0, 0, 0, 0],
+                [0, 0, 1, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 1, 0],
+                [0, 0, 0, 1, 1, 0, 0],
+                [0, 0, 0, 0, 0, 1, 1],
+                [0, 0, 0, 0, 1, 0, 0]
             ],
             [
                 [1, 1, 0, 0, 0],
@@ -358,30 +380,16 @@
                 [0, 0, 0, 1, 1]
             ],
             [
-                [1, 1, 1],
-                [0, 0, 1],
-                [0, 1, 0]
-            ],
-            [
+                [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 1, 0, 1, 0, 0, 0, 0],
+                [0, 1, 1, 0, 1, 0, 0, 0, 1, 0],
+                [1, 0, 0, 1, 1, 0, 0, 1, 0, 1],
+                [1, 0, 1, 0, 0, 1, 1, 0, 0, 1],
+                [0, 1, 0, 0, 0, 1, 0, 1, 1, 0],
+                [0, 0, 0, 0, 1, 0, 1, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
                 [0, 0, 0, 0, 1, 1, 0, 0, 0, 0]
-                , [0, 0, 0, 1, 0, 0, 1, 0, 0, 0]
-                , [0, 0, 0, 1, 0, 1, 0, 0, 0, 0]
-                , [0, 1, 1, 0, 1, 0, 0, 0, 1, 0]
-                , [1, 0, 0, 1, 0, 0, 0, 1, 0, 1]
-                , [1, 0, 1, 0, 0, 0, 1, 0, 0, 1]
-                , [0, 1, 0, 0, 0, 1, 0, 1, 1, 0]
-                , [0, 0, 0, 0, 1, 0, 1, 0, 0, 0]
-                , [0, 0, 0, 1, 0, 0, 1, 0, 0, 0]
-                , [0, 0, 0, 0, 1, 1, 0, 0, 0, 0]
-            ],
-            [
-                [0, 0, 1, 0, 0, 0, 0]
-                , [1, 1, 0, 0, 0, 0, 0]
-                , [0, 0, 1, 1, 0, 0, 0]
-                , [0, 1, 0, 0, 0, 1, 0]
-                , [0, 0, 0, 1, 1, 0, 0]
-                , [0, 0, 0, 0, 0, 1, 1]
-                , [0, 0, 0, 0, 1, 0, 0]
             ],
             [
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -414,14 +422,25 @@
                 [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
                 [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
                 [1, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+            ],
+            [
+                [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+                [0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
             ]
         ]
-        , randomPatern: function () {
+        , randompattern: function () {
             var min = Math.ceil(0);
-            var max = Math.floor(this.patern.length);
+            var max = Math.floor(this.pattern.length);
             var index = Math.floor(Math.random() * (max - min)) + min;
-            return this.patern[index];
-            //return this.patern[this.patern.length -1];
+            return this.pattern[index];
         }
     };
 
