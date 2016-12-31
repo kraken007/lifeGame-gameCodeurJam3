@@ -79,10 +79,10 @@
             game.load.image('start', './img/start.png');
             game.load.image('reset', './img/reset.png');
             this.tabText = [
-                "Le jeu de la vie c'est quoi ? \n C'est un automate cellulaire imaginé \n par John Horton Conway en 1970.",
-                "Le jeu se déroule sur une grille à deux dimensions,\n dont les cases qu’on appelle des « cellules », \n peuvent prendre deux états distincts : \n « vivantes » ou « mortes » ",
-                "À chaque étape,\n l’évolution d’une cellule est entièrement \n déterminée par l’état de ses huit \n voisines de la façon suivante :",
-                "1) Une cellule morte possédant exactement trois\n voisines vivantes devient vivante \n 2) Si une cellule a strictement moins de deux \n ou strictement plus de trois voisines vivantes,\n elle est morte."
+                "Qu’est-ce que le « jeu de la vie » ? \n Il s’agit d’un automate cellulaire créé \n par John Horton Conway en 1970.",
+                "Basé sur une grille à deux dimensions, \n le jeu consiste à activer les cases, \n qu’on appelle « cellules », pouvant prendre deux états distincts : \n « vivantes » ou « mortes ».",
+                "L’évolution d’une cellule est entièrement déterminée par \n l’état de ses huit cellules voisines et entraine plusieurs états à savoir : \n 1) Une cellule morte possédant exactement trois voisines vivantes devient vivante. \n 2) Si une cellule a strictement moins de deux \n ou strictement plus de trois cellules voisines vivantes, \n elle est morte.",
+                "Pour commencer le jeu, \n il faudra sélectionner autant de cellules souhaitées et appuyer sur « Start ». \n Le nombre d’itération indique le nombre de fois que la grille a été rafraichie, \n prouvant ainsi que des cellules sont encore vivantes. \n Il est également possible de choisir la taille de la grille \n (« Nombre de colonne » et « Nombre de ligne »)."
             ];
             this.text = '';
             this.conteurText = 0;
@@ -157,16 +157,18 @@
             game.load.image('start', './img/start.png');
             game.load.image('back', './img/back.png');
             game.load.image('reset', './img/reset.png');
+            game.load.image('plus', './img/plus.png');
+            game.load.image('moins', './img/moins.png');
+            game.load.image('apply', './img/apply.png');
 
 
             //grille
-            this.nbColonne = (this.DEPART.length > 0) ? this.DEPART[0].length : 10;
-            this.nbLigne = (this.DEPART.length > 0) ? this.DEPART.length : 10;
-            this.tailleGrille = this.nbColonne * this.nbLigne;
             this.tabLine = [];
             this.grille = [];
             this.latenceClick = 300;
             this.nextClick = 0;
+            this.maxColonne = 38;
+            this.maxLigne = 20;
 
 
             //cycle jeu
@@ -176,29 +178,35 @@
             this.fps = 3;
         },
         create: function () {
-
+            this.nbColonne = (this.DEPART.length > 0) ? this.DEPART[0].length : 10;
+            this.nbLigne = (this.DEPART.length > 0) ? this.DEPART.length : 10;
+            this.tailleGrille = this.nbColonne * this.nbLigne;
             //bouton taille grille
-
-            var stringNbColonne = 'Nombre de Colonne: ';
-            var texteNbColonne = game.add.text(game.world.width / 2, 10, stringNbColonne + this.nbColonne, {
+            //text + bouton colonne
+            this.stringNbColonne = 'Nombre de Colonne: ';
+            this.texteNbColonne = game.add.text(game.world.width / 2, 10, this.stringNbColonne + this.nbColonne, {
                 font: "32px Arial"
                 , fill: "#ff0044"
                 , align: "center"
             });
-            //init les fonctions plus et moins + le bouton apply et redim de la grille.
-            var colonneBoutonPlus = game.add.button(game.world.width / 2 + texteNbColonne.width + 10, 10, 'cellule', null, this);
-            var colonneboutonMoins = game.add.button(game.world.width / 2 + texteNbColonne.width + colonneBoutonPlus.width *2, 10, 'cellule', null, this);
+            var colonneBoutonPlus = game.add.button(game.world.width / 2 + this.texteNbColonne.width + 10, 10, 'plus', this.plusColonne, this);
+            var colonneboutonMoins = game.add.button(game.world.width / 2 + this.texteNbColonne.width + colonneBoutonPlus.width * 2, 10, 'moins', this.moinsColonne, this);
 
-
-            var stringNbLigne = 'Nombre de ligne: ';
-            var texteNbLigne = game.add.text(game.world.width / 2, texteNbColonne.height + 5+10, stringNbLigne + this.nbColonne, {
+            //text + bouton ligne
+            this.stringNbLigne = 'Nombre de ligne: ';
+            this.texteNbLigne = game.add.text(game.world.width / 2, this.texteNbColonne.height + 5 + 10, this.stringNbLigne + this.nbLigne, {
                 font: "32px Arial"
                 , fill: "#ff0044"
                 , align: "center"
             });
-            var ligneBoutonPlus = game.add.button(game.world.width / 2 + texteNbColonne.width + 10, texteNbColonne.height + 5+10, 'cellule', null, this);
-            var ligneBoutonMoins= game.add.button(game.world.width / 2 + texteNbColonne.width + colonneBoutonPlus.width *2 , texteNbColonne.height + 5+10, 'cellule', null, this);
+            var ligneBoutonPlus = game.add.button(game.world.width / 2 + this.texteNbColonne.width + 10, this.texteNbColonne.height + 5 + 10, 'plus', this.plusLigne, this);
+            var ligneBoutonMoins = game.add.button(game.world.width / 2 + this.texteNbColonne.width + colonneBoutonPlus.width * 2, this.texteNbColonne.height + 5 + 10, 'moins', this.moinsLigne, this);
 
+            //bouton appliqué
+            this.applyButton = game.add.button(game.world.width / 2 + this.texteNbColonne.width + 10, this.texteNbColonne.height + this.texteNbLigne.height + 5 + 10, 'apply', this.apply, this);
+            this.applyButton.visible = false;
+
+            //placement grille
             this.tailleCellule = game.cache.getImage('cellule').width;
             this.startX = (game.world.width - (this.nbColonne * this.tailleCellule)) / 2;
             this.startY = (game.world.height - (this.nbLigne * this.tailleCellule)) / 2;
@@ -331,6 +339,7 @@
             }
         }
         , initGrille: function () {
+            this.tabLine = [];
             //traçage des lignes
             for (var i = 0; i <= this.nbColonne; i++) {
                 this.tabLine.push(new Phaser.Line((this.startX + ( this.tailleCellule * i)), this.startY, (this.startX + ( this.tailleCellule * i)), (this.startY + ( this.tailleCellule * this.nbLigne))));
@@ -339,6 +348,87 @@
                 this.tabLine.push(new Phaser.Line(this.startX, (this.startY + ( this.tailleCellule * j)), (this.startX + ( this.tailleCellule * this.nbColonne)), (this.startY + ( this.tailleCellule * j))));
             }
 
+            //ajout des sprites dans les cases
+            this.remplirGrille();
+
+        }
+        , resetGame: function () {
+            game.time.desiredFps = 30;
+            game.state.start('editor', true, false, this.DEPART);
+        }
+        , retourMenu: function () {
+            game.time.desiredFps = 30;
+            game.state.start('menu', true, false);
+        }
+        , nextState: function () {
+            this.start = true;
+        }
+        , isAlive: function (px, py) {
+            try {
+                var enVie = this.grille[py][px].isAlive;
+            }
+            catch (e) {
+                return false;
+            }
+            return enVie;
+        }
+        , plusColonne: function () {
+            if (this.nbColonne < this.maxColonne) {
+                this.nbColonne += 1;
+                this.texteNbColonne.setText(this.stringNbColonne + this.nbColonne);
+            }
+
+            if (this.applyButton.visible === false) {
+                this.applyButton.visible = true;
+            }
+        }
+        , moinsColonne: function () {
+            if (this.nbColonne > 1) {
+                this.nbColonne -= 1;
+                this.texteNbColonne.setText(this.stringNbColonne + this.nbColonne);
+            }
+
+            if (this.applyButton.visible === false) {
+                this.applyButton.visible = true;
+            }
+        }
+        , plusLigne: function () {
+            if (this.nbLigne < this.maxLigne) {
+                this.nbLigne += 1;
+                this.texteNbLigne.setText(this.stringNbLigne + this.nbLigne);
+            }
+
+            if (this.applyButton.visible === false) {
+                this.applyButton.visible = true;
+            }
+        }
+        , moinsLigne: function () {
+            if (this.nbLigne > 1) {
+                this.nbLigne -= 1;
+                this.texteNbLigne.setText(this.stringNbLigne + this.nbLigne);
+            }
+
+            if (this.applyButton.visible === false) {
+                this.applyButton.visible = true;
+            }
+        }
+        , apply: function () {
+            //parcourir depart
+            var newDepart = [];
+            for (var l = 0; l < this.nbLigne; l++) {
+                newDepart.push(new Array(this.nbColonne));
+                for (var c = 0; c < this.nbColonne; c++) {
+                    if (l < this.DEPART.length && c < this.DEPART[0].length) {
+                        newDepart[l][c] = this.DEPART[l][c];
+                    } else {
+                        newDepart[l][c] = 0;
+                    }
+                }
+            }
+            this.DEPART = newDepart;
+            this.resetGame();
+        }
+        , remplirGrille: function () {
             //ajout des sprites dans les cases
             for (var l = 0; l < this.nbLigne; l++) {
                 this.grille.push(new Array(this.nbColonne));
@@ -353,26 +443,8 @@
                     this.grille[l][c] = cellule;
                 }
             }
-        }, resetGame: function () {
-            game.time.desiredFps = 30;
-            game.state.start('editor', true, false, this.DEPART);
-        }, retourMenu: function () {
-            game.time.desiredFps = 30;
-            game.state.start('menu', true, false);
         }
 
-        , nextState: function () {
-            this.start = true;
-        }
-        , isAlive: function (px, py) {
-            try {
-                var enVie = this.grille[py][px].isAlive;
-            }
-            catch (e) {
-                return false;
-            }
-            return enVie;
-        }
     };
 
     var utils = {
@@ -474,7 +546,7 @@
     game.state.add('intro', intro);
     game.state.add('editor', editor);
     //choix de la première scene
-    game.state.start('editor');
+    game.state.start('menu');
 </script>
 </body>
 
