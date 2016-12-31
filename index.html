@@ -158,6 +158,7 @@
             game.load.image('back', './img/back.png');
             game.load.image('reset', './img/reset.png');
 
+
             //grille
             this.nbColonne = (this.DEPART.length > 0) ? this.DEPART[0].length : 10;
             this.nbLigne = (this.DEPART.length > 0) ? this.DEPART.length : 10;
@@ -167,6 +168,7 @@
             this.latenceClick = 300;
             this.nextClick = 0;
 
+
             //cycle jeu
             this.nbGeneration = 0;
             this.start = false;
@@ -174,6 +176,29 @@
             this.fps = 3;
         },
         create: function () {
+
+            //bouton taille grille
+
+            var stringNbColonne = 'Nombre de Colonne: ';
+            var texteNbColonne = game.add.text(game.world.width / 2, 10, stringNbColonne + this.nbColonne, {
+                font: "32px Arial"
+                , fill: "#ff0044"
+                , align: "center"
+            });
+            //init les fonctions plus et moins + le bouton apply et redim de la grille.
+            var colonneBoutonPlus = game.add.button(game.world.width / 2 + texteNbColonne.width + 10, 10, 'cellule', null, this);
+            var colonneboutonMoins = game.add.button(game.world.width / 2 + texteNbColonne.width + colonneBoutonPlus.width *2, 10, 'cellule', null, this);
+
+
+            var stringNbLigne = 'Nombre de ligne: ';
+            var texteNbLigne = game.add.text(game.world.width / 2, texteNbColonne.height + 5+10, stringNbLigne + this.nbColonne, {
+                font: "32px Arial"
+                , fill: "#ff0044"
+                , align: "center"
+            });
+            var ligneBoutonPlus = game.add.button(game.world.width / 2 + texteNbColonne.width + 10, texteNbColonne.height + 5+10, 'cellule', null, this);
+            var ligneBoutonMoins= game.add.button(game.world.width / 2 + texteNbColonne.width + colonneBoutonPlus.width *2 , texteNbColonne.height + 5+10, 'cellule', null, this);
+
             this.tailleCellule = game.cache.getImage('cellule').width;
             this.startX = (game.world.width - (this.nbColonne * this.tailleCellule)) / 2;
             this.startY = (game.world.height - (this.nbLigne * this.tailleCellule)) / 2;
@@ -205,7 +230,7 @@
             var buttonReset = game.add.button(positionX + (espace * 2) - (game.cache.getImage('reset').width / 2 ), positionY, 'reset', this.resetGame, this);
 
             //affichage du texte pour le nb de génération
-            this.textGenerationString = 'Nombre d\'itération : ' ;
+            this.textGenerationString = 'Nombre d\'itération : ';
             this.textGeneration = game.add.text(10, 10, this.textGenerationString + this.nbGeneration, {
                 font: "32px Arial"
                 , fill: "#ff0044"
@@ -449,7 +474,7 @@
     game.state.add('intro', intro);
     game.state.add('editor', editor);
     //choix de la première scene
-    game.state.start('menu');
+    game.state.start('editor');
 </script>
 </body>
 
